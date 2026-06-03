@@ -64,11 +64,13 @@ def _make_topic(
     view_count: str,
     category: str,
     collected_at: str,
+    join_num: str = "",
 ) -> Dict[str, Any]:
     return {
         "rank": rank,
         "topic": topic.strip(),
         "view_count": view_count.strip() if view_count else "",
+        "join_num": join_num,
         "category": category.strip() if category else "",
         "collected_at": collected_at,
     }
@@ -124,7 +126,8 @@ def _parse_select_topic_detail(data: Any, collected_at: str) -> List[Dict]:
             if not title:
                 continue
             view_str = _format_view_count(item.get("viewNum", ""))
-            results.append(_make_topic(rank, title, view_str, label_name, collected_at))
+            join_str = _format_view_count(item.get("joinNum", ""))
+            results.append(_make_topic(rank, title, view_str, label_name, collected_at, join_str))
             rank += 1
     return results
 
@@ -239,11 +242,11 @@ def _write_tsv(topics: List[Dict], output_dir: str, ts: datetime) -> str:
     day_dir.mkdir(parents=True, exist_ok=True)
     path = day_dir / f"xhs_creator_hot_{day}_{slot}.tsv"
 
-    header = "rank\ttopic\tview_count\tcategory\tcollected_at\n"
+    header = "rank\ttopic\tview_count\tjoin_num\tcategory\tcollected_at\n"
     lines = [header]
     for i, t in enumerate(topics, 1):
         lines.append(
-            f"{i}\t{t['topic']}\t{t['view_count']}\t{t['category']}\t{t['collected_at']}\n"
+            f"{i}\t{t['topic']}\t{t['view_count']}\t{t.get('join_num', '')}\t{t['category']}\t{t['collected_at']}\n"
         )
     path.write_text("".join(lines), encoding="utf-8")
     return str(path)
